@@ -29,6 +29,9 @@ export { useOptions } from './hooks';
 
 export { onTakeSnapshot } from './hooks';
 
+// debug hooks
+export { useEffectDebug } from './hooks-debug';
+
 /**
  * @typedef {object} GenericObjectLayout
  */

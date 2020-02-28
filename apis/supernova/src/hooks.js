@@ -376,10 +376,9 @@ export function useImperativeHandle(fn, deps) {
  * @param {Array<any>=} deps
  * @returns {Array<any,any>}
  */
-export function usePromise(p, deps) {
-  const [obj, setObj] = useState(() => ({
-    resolved: undefined,
-    rejected: undefined,
+export function usePromise(fn, deps) {
+  const [state, setState] = useState(() => ({
+    value: undefined,
     state: 'pending',
   }));
 
@@ -399,21 +398,20 @@ export function usePromise(p, deps) {
       }
     };
 
-    // setObj({
-    //   ...obj,
-    //   state: 'pending',
-    // });
+    setState({
+      value: undefined,
+      state: 'pending',
+    });
 
-    p()
+    fn()
       .then(v => {
         if (canceled) {
           return;
         }
         h.teardown && h.teardown();
-        setObj({
-          resolved: v,
-          rejected: undefined,
-          state: 'resolved',
+        setState({
+          value: v,
+          state: 'fulfilled',
         });
       })
       .catch(e => {
@@ -421,10 +419,9 @@ export function usePromise(p, deps) {
           return;
         }
         h.teardown && h.teardown();
-        setObj({
-          resolved: undefined,
-          rejected: e,
-          state: 'resolved',
+        setState({
+          value: e,
+          state: 'rejected',
         });
       });
 
@@ -435,7 +432,7 @@ export function usePromise(p, deps) {
     };
   }, deps);
 
-  return [obj.resolved, obj.rejected];
+  return [state];
 }
 
 // ---- composed hooks ------

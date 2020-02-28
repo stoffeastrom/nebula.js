@@ -6,6 +6,7 @@ import { useTheme } from '@nebula.js/ui/theme';
 
 import CError from './Error';
 import LongRunningQuery from './LongRunningQuery';
+import Rendering from './Rendering';
 import Loading from './Loading';
 import Header from './Header';
 import Footer from './Footer';
@@ -15,6 +16,28 @@ import useRect from '../hooks/useRect';
 import useLayout, { useAppLayout } from '../hooks/useLayout';
 import InstanceContext from '../contexts/InstanceContext';
 import useObjectSelections from '../hooks/useObjectSelections';
+
+const initialSnState = {
+  rendering: false,
+};
+
+const snReducer = (_, action) => {
+  switch (action.type) {
+    case 'RENDERING': {
+      return {
+        rendering: true,
+      };
+    }
+    case 'RENDERING_DONE': {
+      return {
+        rendering: false,
+      };
+    }
+    default: {
+      throw new Error(`Unhandled type: ${action.type}`);
+    }
+  }
+};
 
 const initialState = err => ({
   loading: false,
@@ -170,6 +193,7 @@ const Cell = forwardRef(({ corona, model, initialSnOptions, initialError, onMoun
   const theme = useTheme();
   const cellRef = useRef();
   const [state, dispatch] = useReducer(contentReducer, initialState(initialError));
+  const [snState, snDispatch] = useReducer(snReducer, initialSnState);
   const [layout, { validating, canCancel, canRetry }, longrunning] = useLayout(model);
   const [appLayout] = useAppLayout(app);
   const [contentRef, contentRect, , contentNode] = useRect();
@@ -281,6 +305,7 @@ const Cell = forwardRef(({ corona, model, initialSnOptions, initialError, onMoun
     }),
     [state.sn, contentRect, layout, theme.name, appLayout]
   );
+
   // console.log('content', state);
   let Content = null;
   if (state.loading) {
@@ -297,6 +322,7 @@ const Cell = forwardRef(({ corona, model, initialSnOptions, initialError, onMoun
         layout={layout}
         appLayout={appLayout}
         parentNode={contentNode}
+        dispatch={snDispatch}
       />
     );
   }
@@ -337,6 +363,7 @@ const Cell = forwardRef(({ corona, model, initialSnOptions, initialError, onMoun
         <Footer layout={layout} />
       </Grid>
       {state.longRunningQuery && <LongRunningQuery canCancel={canCancel} canRetry={canRetry} api={longrunning} />}
+      {!state.longRunningQuery && snState.rendering && <Rendering />}
     </Paper>
   );
 });

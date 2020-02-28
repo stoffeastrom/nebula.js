@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useContext, useRef } from 'rea
 import InstanceContext from '../contexts/InstanceContext';
 import useRect from '../hooks/useRect';
 
-const Supernova = ({ sn, snOptions: options, layout, appLayout, corona }) => {
+const Supernova = ({ sn, snOptions: options, layout, appLayout, corona, dispatch }) => {
   const { component } = sn;
 
   const { theme: themeName, language, constraints } = useContext(InstanceContext);
@@ -61,6 +61,7 @@ const Supernova = ({ sn, snOptions: options, layout, appLayout, corona }) => {
       if (corona.app && corona.app.session) {
         permissions.push('fetch');
       }
+      dispatch({ type: 'RENDERING' });
       Promise.resolve(
         component.render({
           layout,
@@ -87,6 +88,7 @@ const Supernova = ({ sn, snOptions: options, layout, appLayout, corona }) => {
           options.onInitialRender.call(null);
         }
         setRenderCnt(renderCnt + 1);
+        dispatch({ type: 'RENDERING_DONE' });
       });
     }, 10);
   }, [containerRect, options, snNode, containerNode, layout, appLayout, themeName, language, constraints, isMounted]);
